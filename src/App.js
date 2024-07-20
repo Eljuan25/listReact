@@ -1,23 +1,52 @@
-import logo from './logo.svg';
+import  React,{ useState } from 'react';
 import './App.css';
 
 function App() {
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState('');
+
+  const addTask = () => {
+    if (newTask.trim()) {
+      setTasks([...tasks, { text: newTask, completed: false }]);
+      setNewTask('');
+    }
+  };
+
+  const deleteTask = (index) => {
+    const newTasks = tasks.filter((_, i) => i !== index);
+    setTasks(newTasks);
+  };
+
+  const toggleTask = (index) => {
+    const newTasks = tasks.map((task, i) =>
+      i === index ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(newTasks);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Lista de Tareas</h1>
+      <div>
+        <input 
+          type="text" 
+          value={newTask} 
+          onChange={(e) => setNewTask(e.target.value)} 
+          placeholder="Nueva tarea" 
+        />
+        <button onClick={addTask}>Agregar</button>
+      </div>
+      <ul>
+        {tasks.map((task, index) => (
+          <li key={index} style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+            {task.text}
+            <button onClick={() => toggleTask(index)}>
+              {task.completed ? 'Desmarcar' : 'Completar'}
+            </button>
+            <button onClick={() => deleteTask(index)}>Eliminar</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
