@@ -1,54 +1,63 @@
-import  React,{ useState } from 'react';
+// src/App.js
+import React, { useState, useEffect } from 'react';
+import TodoList from './components/TodoList';
+import TodoForm from './components/TodoForm';
 import './App.css';
 
-function App() {
-  const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState('');
+const App = () => {
+  const [todos, setTodos] = useState([]);
+  const [filter, setFilter] = useState('all');
 
-  const addTask = () => {
-    if (newTask.trim()) {
-      setTasks([...tasks, { text: newTask, completed: false }]);
-      setNewTask('');
-    }
+  useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem('todos')) || [];
+    setTodos(savedTodos);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }, [todos]);
+
+  const addTodo = text => {
+    const newTodo = {
+      id: Date.now(),
+      text,
+      completed: false
+    };
+    setTodos([newTodo, ...todos]);
   };
 
-  const deleteTask = (index) => {
-    const newTasks = tasks.filter((_, i) => i !== index);
-    setTasks(newTasks);
-  };
-
-  const toggleTask = (index) => {
-    const newTasks = tasks.map((task, i) =>
-      i === index ? { ...task, completed: !task.completed } : task
+  const toggleComplete = id => {
+    setTodos(
+      todos.map(todo =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
     );
-    setTasks(newTasks);
   };
+
+  const removeTodo = id => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+
+  const filteredTodos = todos.filter(todo => {
+    if (filter === 'completed') return todo.completed;
+    if (filter === 'pending') return !todo.completed;
+    return true;
+  });
 
   return (
     <div className="App">
+         <img src="/img/logo.jpg" alt="icon" className="header-icon" />
       <h1>Lista de Tareas</h1>
+      <TodoForm addTodo={addTodo} />
       <div>
-        <input 
-          type="text" 
-          value={newTask} 
-          onChange={(e) => setNewTask(e.target.value)} 
-          placeholder="Nueva tarea" 
-        />
-        <button onClick={addTask}>Agregar</button>
+        <button onClick={() => setFilter('all')}>Todas</button>
+        <button onClick={() => setFilter('completed')}>Completadas</button>
+        <button onClick={() => setFilter('pending')}>Pendientes</button>
       </div>
-      <ul>
-        {tasks.map((task, index) => (
-          <li key={index} style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-            {task.text}
-            <button onClick={() => toggleTask(index)}>
-              {task.completed ? 'Desmarcar' : 'Completar'}
-            </button>
-            <button onClick={() => deleteTask(index)}>Eliminar</button>
-          </li>
-        ))}
-      </ul>
+      <TodoList todos={filteredTodos} toggleComplete={toggleComplete} removeTodo={removeTodo} />
     </div>
   );
-}
+};
 
 export default App;
+
